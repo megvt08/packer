@@ -36,6 +36,8 @@ type config struct {
 
 	BootCommand          []string `mapstructure:"boot_command"`
 	DiskSize             uint     `mapstructure:"disk_size"`
+	// Assignin DiskType as string
+	DiskType	     string   `mapstructure:"disk_type"`
 	GuestAdditionsMode   string   `mapstructure:"guest_additions_mode"`
 	GuestAdditionsPath   string   `mapstructure:"guest_additions_path"`
 	GuestAdditionsURL    string   `mapstructure:"guest_additions_url"`
@@ -84,6 +86,11 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		b.config.DiskSize = 40000
 	}
 
+	// Setting DiskType to VDI as default if nothing is specified
+	if b.config.DiskType == "" {
+		b.config.DiskType = "vdi"
+	}
+
 	if b.config.GuestAdditionsMode == "" {
 		b.config.GuestAdditionsMode = "upload"
 	}
@@ -119,6 +126,8 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		"iso_interface":          &b.config.ISOInterface,
 		"iso_url":                &b.config.RawSingleISOUrl,
 		"vm_name":                &b.config.VMName,
+	// Adding Disk type for error check
+		"disk_type":              &b.config.DiskType,
 	}
 
 	for n, ptr := range templates {
@@ -161,6 +170,11 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	if b.config.HardDriveInterface != "ide" && b.config.HardDriveInterface != "sata" {
 		errs = packer.MultiErrorAppend(
 			errs, errors.New("hard_drive_interface can only be ide or sata"))
+	}
+
+	if b.config.DiskType != "vdi" && b.config.DiskType != "vmdk" && b.config.DiskType != "vhd" {
+		errs = packer.MultiErrorAppend(
+			errs, errors.New("disk_type can only be vdi, vmdk or vhd"))
 	}
 
 	if b.config.ISOChecksumType == "" {
