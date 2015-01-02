@@ -19,8 +19,8 @@ func (s *stepCreateDisk) Run(state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(vboxcommon.Driver)
 	ui := state.Get("ui").(packer.Ui)
 	vmName := state.Get("vmName").(string)
-
-	format := "VDI"
+	// Instead of static vdi now this should be to whatever we define in our builder
+	format := config.DiskType
 	path := filepath.Join(config.OutputDir, fmt.Sprintf("%s.%s", config.VMName, strings.ToLower(format)))
 
 	command := []string{
